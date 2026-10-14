@@ -6,16 +6,18 @@
     "start": "electron .",
     "package": "node build.js",
     "prepackage-old": "node scripts/bump-build.js",
-    "package-old": "electron-packager . FocusBrowser --platform=win32 --arch=x64 --icon=icon.ico --out=dist --overwrite"
+    "package-old": "electron-packager . FocusBrowser --platform=win32 --arch=x64 --icon=icon.ico --out=dist --overwrite",
+    "dev": "node -e \"process.env.DEV_TOOLS='true'; require('child_process').spawn('npx', ['electron', '.'], {shell: true, stdio: 'inherit'});\""
   },
   "devDependencies": {
     "@electron/packager": "^18.3.3",
     "electron": "^31.0.0"
   },
-  "buildCounter": 15,
-  "buildString": "AM0000F-OpSys_W1",
+  "buildCounter": 18,
+  "buildString": "AM0000I-OpSys_W1",
   "dependencies": {
     "archiver": "^6.0.2",
+    "dotenv": "^18.0.8",
     "electron-builder": "^26.15.3"
   }
 }

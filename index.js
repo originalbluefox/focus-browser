@@ -1,16 +1,16 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
-
+require('dotenv').config();
 app.setPath('userData', path.join(app.getPath('appData'), 'focus-helper-dev'));
 app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
 const pkg = require('./package.json');
 
 let mainWindow;
 
-function createWindow () {
+function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 600,
-    height: 500,
+    maximizable: true,
+    minimizable: true,
     icon: path.join(__dirname, 'icon.ico'),
     titleBarStyle: 'hidden',
     titleBarOverlay: {
@@ -24,9 +24,14 @@ function createWindow () {
       contextIsolation: false,
       webSecurity: false
     }
+    
   });
-
+  mainWindow.maximize()
   mainWindow.loadFile(path.join(__dirname, 'src/html/setup.html'));
+
+  if (process.env.DEV_TOOLS === 'true') {
+    mainWindow.webContents.openDevTools()
+  }
 }
 
 ipcMain.handle('get-app-version', () => {

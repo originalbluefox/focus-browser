@@ -1,69 +1,7 @@
-const { ipcRenderer } = require('electron');
-const { checkSearch, getConfig } = require('../js/filter.js');
-const { initContextBridge } = require('../js/context.js');
-
-// DOM Handles
-const workView = document.getElementById('work-view');
-const aiView = document.getElementById('ai-view');
-const urlInput = document.getElementById('url-input');
-const goBtn = document.getElementById('go-btn');
-const backBtn = document.getElementById('back-btn');
-const reloadBtn = document.getElementById('reload-btn');
-const toggleAiBtn = document.getElementById('toggle-ai');
-const aiContainer = document.getElementById('ai-container');
-const toAiBtn = document.getElementById('to-ai-btn');
-const toPageBtn = document.getElementById('to-page-btn');
-
-const versionText = document.getElementById('version');
-const messageText = document.getElementById('message');
-
-// Default search scheme fallback if not passed from setup
-let preferences = { 
-    searchEngineScheme: 'https://google.com/search?q=' 
-};
-
-// Listen for user preferences passed from setup window on launch
-ipcRenderer.on('set-user-preferences', (event, prefs) => {
-    console.log('[App] Received preferences from setup:', prefs);
-    if (prefs.searchEngine) {
-        console.log("[App] SEARCH ENGINE SELECTED", prefs.searchEngine)
-        preferences.searchEngineScheme = prefs.searchEngine;
-        workView.setAttribute('src', prefs.searchEngine)
-    }
-    if (prefs.aiAssistant && aiView) {
-        aiView.setAttribute('src', prefs.aiAssistant);
-    }
-});
-
-function toggleStatusText() {
-    document.querySelectorAll('#status-footer p').forEach(p => {
-        p.style.display = (p.style.display === 'none' ? 'inline-block' : 'none');
-    });
-}
-window.toggleStatusText = toggleStatusText;
-
-async function navigate() {
-    const rawInput = urlInput.value.trim();
-    if (!rawInput) return;
-
-    const tld = /^[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/;
-    const isDomain = tld.test(rawInput);
-    const isLink = /\w+:\/\//.test(rawInput);
-
-    let validatedInput = await checkSearch(rawInput);
-    if (!validatedInput) {
-        messageText.innerText = `x_x navigation blocked: "${rawInput}"`;
-        return;
-    }
-
-    if (!isLink && isDomain) {
-        validatedInput = 'https://' + validatedInput;
-    } else if (!isLink && !isDomain) {
-        validatedInput = preferences.searchEngineScheme + encodeURIComponent(validatedInput);
-    }
-
-    workView.setAttribute('src', validatedInput);
-}
+// Main App Entry Point
+const state = require('../js/state.js');
+const { createTab } = require('../js/tab.js');
+const { initNavigationListeners } = require('../js/navigation.js');
 
 function compareSemVer(v1, v2) {
     const p1 = v1.split('.').map(Number);
@@ -77,65 +15,76 @@ function compareSemVer(v1, v2) {
     return 0;
 }
 
-// Event Listeners
-goBtn.addEventListener('click', navigate);
-urlInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') navigate(); });
-backBtn.addEventListener('click', () => { if (workView.canGoBack()) workView.goBack(); });
-reloadBtn.addEventListener('click', () => workView.reload());
+// Initialize navigation controls and listeners
+initNavigationListeners();
 
-workView.addEventListener('did-navigate', (e) => { urlInput.value = e.url; });
-workView.addEventListener('did-navigate-in-page', (e) => {
-    if (e.isMainFrame) urlInput.value = e.url;
-});
-
-if (toggleAiBtn && aiContainer) {
-    toggleAiBtn.addEventListener('click', () => {
-        aiContainer.classList.toggle('hidden');
+// Initialize Context Bridge with dynamic active view getter
+setTimeout(() => {
+    state.initContextBridge({
+        workView: state.getActiveWebview(),
+        geminiView: state.aiView,
+        geminiContainer: state.aiContainer,
+        toPageBtn: state.toPageBtn,
+        toGeminiBtn: state.toAiBtn,
+        messageText: state.messageText
     });
+}, 500);
+
+// Initialize Developer Tools Hook
+if (state.DeveloperTools) {
+    try {
+        state.DeveloperTools.init({
+            preferences: state.preferences,
+            tabs: state.tabs,
+            getActiveWebview: state.getActiveWebview
+        });
+        console.log('[DevTools] Initialized successfully.');
+    } catch (e) {
+        console.warn('[DevTools] Failed to initialize:', e);
+    }
 }
 
-// Initialize Context Bridge (two-way) mapping the AI view container
-initContextBridge({
-    workView,
-    geminiView: aiView,
-    geminiContainer: aiContainer,
-    toPageBtn,
-    toGeminiBtn: toAiBtn,
-    messageText
-});
-
-// Version Check
+// Version Check & Initial Startup Tab
 document.addEventListener('DOMContentLoaded', async () => {
-    const appMeta = await ipcRenderer.invoke('get-app-version');
-    const currentVersion = appMeta.version;
-
-    versionText.innerText = `Version: v${currentVersion} (Build ${appMeta.build})`;
-    await getConfig();
+    if (navigator.platform.toLowerCase().includes('mac') || navigator.userAgent.includes('Mac')) {
+        document.body.classList.add('macos');
+    }
+    createTab('https://google.com', 'Google');
 
     try {
-        messageText.innerText = 'Checking for updates...';
+        const appMeta = await state.ipcRenderer.invoke('get-app-version');
+        const currentVersion = appMeta.version;
+        state.versionText.innerText = `v${currentVersion} (Build ${appMeta.build})`;
+    } catch (e) {
+        state.versionText.innerText = 'v1.0.0';
+    }
+
+    await state.getConfig();
+
+    try {
+        state.messageText.innerText = 'Checking for updates...';
         const res = await fetch('https://raw.githubusercontent.com/originalbluef3x/versions/refs/heads/main/versions.json');
         const response = await res.json();
 
-        const remoteVersion = response['projectAether']?.version || false;
+        const remoteVersion = response['Study Browser']?.version || false;
         if (!remoteVersion) {
-            messageText.innerText = 'No version entry found.';
+            state.messageText.innerText = 'No version entry found.';
             return;
         }
 
-        const cmp = compareSemVer(remoteVersion, currentVersion);
-        if (cmp > 0) messageText.innerText = `A new update is available: v${remoteVersion}`;
-        else if (cmp < 0) messageText.innerText = `Running dev build (v${currentVersion})`;
-        else messageText.innerText = 'Up-to-date!';
+        const currentVersionClean = state.versionText.innerText.split(' ')[0].replace('v', '');
+        const cmp = compareSemVer(remoteVersion, currentVersionClean);
+        if (cmp > 0) state.messageText.innerText = `Update available: v${remoteVersion}`;
+        else if (cmp < 0) state.messageText.innerText = `Dev build`;
+        else state.messageText.innerText = 'Up-to-date';
     } catch (err) {
-        messageText.innerText = 'Unable to fetch version status.';
+        state.messageText.innerText = 'Offline / Status check failed';
     }
 });
 
 const newSessionBtn = document.getElementById('new-session-btn');
-
 if (newSessionBtn) {
     newSessionBtn.addEventListener('click', () => {
-        ipcRenderer.send('return-to-setup');
+        state.ipcRenderer.send('return-to-setup');
     });
 }

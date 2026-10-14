@@ -122,7 +122,7 @@ async function main() {
     
     console.log(`\x1b[32m[Phase 3/3]\x1b[0m Compressing build folder to ZIP...`);
     const zipOutputName = path.join(outDir, `${pkg.name}-${buildNumber}-${targetPlatform}-${targetArch}.zip`);
-    await compressToZip(targetBuildFolder, zipOutputName);
+    // await compressToZip(targetBuildFolder, zipOutputName);
 
     const totalSeconds = ((Date.now() - startTime) / 1000).toFixed(2);
     console.log(`\n\x1b[35m[Timer]\x1b[0m Build complete! Total time elapsed: \x1b[33m${totalSeconds}s\x1b[0m`);

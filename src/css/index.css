@@ -1,0 +1,272 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    color: #e3e3e3;
+    font-family: 'Outfit', 'Segoe UI', sans-serif;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+*::-webkit-scrollbar {
+    display: none;
+}
+
+body {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    background-color: #121212;
+    overflow: hidden;
+}
+
+/* ===== Window Header & Tabs ===== */
+#title-bar {
+    height: 36px;
+    background: #171717;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px;
+    -webkit-app-region: drag;
+    border-bottom: 1px solid #222;
+}
+
+.app-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #b0b0b0;
+    user-select: none;
+    white-space: nowrap;
+    padding: 0 8px;
+}
+
+#tab-strip-holder {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    justify-content: flex-start;
+    -webkit-app-region: no-drag;
+    overflow: hidden;
+    margin-left: 12px;
+}
+
+#tab-strip {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0; /* Prevents tab strip from forcing the plus button away */
+    overflow-x: auto;
+    padding: 0 4px;
+}
+
+.new-tab-btn {
+    background: #1e1e1e;
+    border: 1px solid #333;
+    color: #888;
+    font-size: 16px;
+    padding: 4px 10px;
+    cursor: pointer;
+    border-radius: 6px;
+    margin-left: 6px;
+    flex-shrink: 0;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.new-tab-btn:hover {
+    background: #252525;
+    color: #fff;
+    border-color: #444;
+}
+
+.tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #1e1e1e;
+    border: 1px solid transparent;
+    padding: 5px 12px;
+    border-radius: 6px 6px 0 0;
+    font-size: 12px;
+    color: #999;
+    cursor: pointer;
+    user-select: none;
+    max-width: 160px;
+    min-width: 100px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.tab.active {
+    background: #1f1f1f;
+    color: #fff;
+    border-color: #333;
+    border-bottom-color: #1f1f1f;
+}
+
+.tab:hover:not(.active) {
+    background: #1a1a1a;
+    color: #ccc;
+}
+
+.tab-close {
+    font-size: 11px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    color: #777;
+    margin-left: auto;
+}
+
+.tab-close:hover {
+    background: #333;
+    color: #fff;
+}
+
+
+/* ===== Navigation & Address Bar ===== */
+#nav-bar {
+    height: 44px;
+    background: #1f1f1f;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    border-bottom: 1px solid #2d2d2d;
+}
+
+#address-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    max-width: 700px;
+}
+
+.nav-btn, .toggle-btn, .select-dropdown {
+    background: #282828;
+    border: 1px solid #383838;
+    color: #d0d0d0;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+    outline: none;
+}
+
+.nav-btn:hover, .toggle-btn:hover, .select-dropdown:hover {
+    background: #333333;
+    border-color: #4f4f4f;
+    color: #fff;
+}
+
+.select-dropdown {
+    padding: 5px 8px;
+}
+
+#url-input {
+    flex: 1;
+    background: #141414;
+    border: 1px solid #333;
+    color: #f0f0f0 !important;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+#url-input:focus {
+    border-color: #666;
+}
+
+.right-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+}
+
+/* ===== Main Split Container ===== */
+#app-viewport {
+    flex: 1;
+    display: flex;
+    position: relative;
+    overflow: hidden;
+    background: #1f1f1f;
+}
+
+#work-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+}
+
+#ai-container {
+    width: 450px;
+    height: 100%;
+    border-left: 1px solid #2d2d2d;
+    transition: margin-right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    background: #181818;
+}
+
+#ai-container.hidden {
+    margin-right: -450px;
+}
+
+webview {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: #ffffff;
+    display: flex;
+}
+
+/* ===== Version & Status Footer Bar ===== */
+#status-footer {
+    background: #141414;
+    border-top: 1px solid #222;
+    padding: 4px 12px;
+    font-size: 11px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    height: 24px;
+}
+
+#status-footer p {
+    font-size: 11px;
+    color: #888;
+}
+
+#status-footer a {
+    color: #ccc;
+    text-decoration: none;
+}
+
+#status-footer a:hover {
+    text-decoration: underline;
+}
+/* Shift title bar content right on macOS for traffic lights */
+body.macos #title-bar {
+    padding-left: 78px;
+    -webkit-app-region: drag;
+}
+
+body.macos #title-bar * {
+    -webkit-app-region: no-drag;
+}
