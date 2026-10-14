@@ -99,7 +99,7 @@ async function main() {
   console.log(`\x1b[32m[Phase 1/3]\x1b[0m Generated build code: \x1b[33m#${buildNumber}\x1b[0m (Counter: ${pkg.buildCounter})`);
 
   const outDir = path.join('dist', buildNumber);
-  const tmpDir = '\.focus-browser-tmp';
+  const tmpDir = '\..focus-browser-tmp';
   if (!fs.existsSync(tmpDir)) {
     fs.mkdirSync(tmpDir, { recursive: true });
   }
