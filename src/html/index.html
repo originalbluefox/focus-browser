@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProjectAether Browser</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            color: #e3e3e3;
+            font-family: 'Outfit', 'Segoe UI', sans-serif;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        *::-webkit-scrollbar {
+            display: none;
+        }
+
+        body {
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            background-color: #121212;
+            overflow: hidden;
+        }
+
+        /* ===== Drag Header Controls ===== */
+        #title-bar {
+            height: 42px;
+            background: #1e1e1e;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            -webkit-app-region: drag;
+            border-bottom: 1px solid #2d2d2d;
+            gap: 12px;
+        }
+
+        .app-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #8ab4f8;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        #address-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            max-width: 600px;
+            -webkit-app-region: no-drag;
+        }
+
+        .nav-btn, .toggle-btn, .select-dropdown {
+            background: #2b2b2b;
+            border: 1px solid #3d3d3d;
+            color: #e3e3e3;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+            white-space: nowrap;
+            outline: none;
+            -webkit-app-region: no-drag;
+        }
+
+        .nav-btn:hover, .toggle-btn:hover, .select-dropdown:hover {
+            background: #383838;
+            border-color: #555;
+        }
+
+        .select-dropdown {
+            padding: 5px 8px;
+        }
+
+        #url-input {
+            flex: 1;
+            background: #141414;
+            border: 1px solid #333;
+            color: #fff !important;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        #url-input:focus {
+            border-color: #8ab4f8;
+        }
+
+        .right-bar-actions {
+            -webkit-app-region: no-drag;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ===== Main Split Container ===== */
+        #app-viewport {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #work-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        #ai-container {
+            width: 450px;
+            height: 100%;
+            border-left: 1px solid #2d2d2d;
+            transition: margin-right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #ai-container.hidden {
+            margin-right: -450px;
+        }
+
+        webview {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #ffffff;
+        }
+
+        /* ===== Version & Status Footer Bar ===== */
+        #status-footer {
+            background: #181818;
+            border-top: 1px solid #282828;
+            padding: 4px 12px;
+            font-size: 12px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            height: 24px;
+        }
+
+        #status-footer p {
+            font-size: 11px;
+            color: #aaaaaa;
+        }
+
+        #status-footer a {
+            color: #8ab4f8;
+            text-decoration: none;
+        }
+
+        #status-footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Drag Header & Controls -->
+    <div id="title-bar">
+        <span class="app-title">ProjectAether</span>
+
+        <form id="address-controls" onsubmit="event.preventDefault();">
+            <button type="button" class="nav-btn" id="back-btn">←</button>
+            <button type="button" class="nav-btn" id="reload-btn">↻</button>
+            <input type="text" id="url-input" value="https://google.com" placeholder="Search query or enter URL..." />
+            <button type="button" class="nav-btn" id="go-btn">Go</button>
+        </form>
+
+        <div class="right-bar-actions">
+            <!-- Search Engine Selector -->
+            
+
+            <button type="button" class="toggle-btn" id="new-session-btn">Return to Setup</button>
+            <button type="button" class="toggle-btn" id="toggle-ai">Toggle AI</button>
+            <button type="button" class="toggle-btn" id="showButton" onclick="toggleStatusText()">Toggle Details</button>
+            <button type="button" class="toggle-btn" id="to-ai-btn">Page → AI</button>
+            <button type="button" class="toggle-btn" id="to-page-btn">AI → Page</button>
+        </div>
+    </div>
+
+    <!-- Workspace Viewports -->
+    <div id="app-viewport">
+        <div id="work-container">
+            <webview id="work-view" src="https://google.com"></webview>
+        </div>
+
+        <div id="ai-container">
+            <webview id="ai-view" src="https://gemini.google.com"></webview>
+        </div>
+    </div>
+
+    <!-- Info Footer -->
+    <div id="status-footer">
+        <p id="version">Version: </p>
+        <p id="message">Checking for updates...</p>
+        <p id="update-link">If there's a new update, click <a href="https://github.com/originalbluef3x/study-browser/releases" target="_blank">here</a> to download.</p>
+    </div>
+
+    <!-- Main Entry Point -->
+    <script src="../js/app.js"></script>
+</body>
+</html>

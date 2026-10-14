@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProjectAether - Setup</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            color: #e3e3e3;
+            font-family: 'Outfit', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #121212;
+        }
+
+        .setup-card {
+            background: #1e1e1e;
+            border: 1px solid #2d2d2d;
+            padding: 32px;
+            border-radius: 12px;
+            width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+
+        h1 {
+            font-size: 20px;
+            color: #8ab4f8;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 13px;
+            color: #aaa;
+        }
+
+        select {
+            background: #141414;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        select:focus {
+            border-color: #8ab4f8;
+        }
+
+        .launch-btn {
+            background: #8ab4f8;
+            color: #121212;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 10px;
+        }
+
+        .launch-btn:hover {
+            background: #aecbfa;
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-card">
+        <h1>ProjectAether</h1>
+        <p style="text-align: center; font-size: 13px; color: #888;">Configure your workspace preferences</p>
+
+        <div class="input-group">
+            <label for="search-select">Preferred Search Engine</label>
+            <select id="search-select">
+                <option value="https://google.com/search?q=">Google</option>
+                <option value="https://duckduckgo.com/?q=">DuckDuckGo</option>
+                <option value="https://www.bing.com/search?q=">Bing</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label for="ai-select">Preferred AI Assistant</label>
+            <select id="ai-select">
+                <option value="https://gemini.google.com">Gemini</option>
+                <option value="https://chatgpt.com">ChatGPT</option>
+                <option value="https://claude.ai">Claude</option>
+            </select>
+        </div>
+
+        <button class="launch-btn" id="launch-btn">Launch Workspace</button>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        document.getElementById('launch-btn').addEventListener('click', () => {
+            const searchEngine = document.getElementById('search-select').value;
+            const aiAssistant = document.getElementById('ai-select').value;
+
+            // Send preferences to main process to load the main window
+            ipcRenderer.send('launch-main-app', { searchEngine, aiAssistant });
+        });
+    </script>
+</body>
+</html>
