@@ -29,13 +29,12 @@ function compressToZip(input, output) {
 
     const outputStream = fs.createWriteStream(output);
 
-    // Live progress tracker
     archive.on('progress', (progress) => {
       process.stdout.write(`\r\x1b[36m[Archiver]\x1b[0m Zipping... Processed ${progress.fs.processedBytes} bytes`);
     });
 
     outputStream.on('close', function () {
-      process.stdout.write('\n'); // Clear progress line
+      process.stdout.write('\n');
       console.log(`\x1b[32m[Success]\x1b[0m Archive created: \x1b[33m${output}\x1b[0m (${archive.pointer()} total bytes)`);
       resolve(output);
     });
@@ -58,7 +57,6 @@ async function main() {
   const startTime = Date.now();
   console.log(`\x1b[35m[Timer]\x1b[0m Build script started at ${new Date().toLocaleTimeString()}`);
 
-  // 1. Increment integer build counter
   pkg.buildCounter = (pkg.buildCounter || 0) + 1;
 
   function getHardwarePair() {
@@ -99,24 +97,24 @@ async function main() {
   console.log(`\x1b[32m[Phase 1/3]\x1b[0m Generated build code: \x1b[33m#${buildNumber}\x1b[0m (Counter: ${pkg.buildCounter})`);
 
   const outDir = path.join('dist', buildNumber);
-  const tmpDir = '\..focus-browser-tmp';
+  
+  // Use absolute system temp directory to prevent packager path conflicts
+  const tmpDir = path.join(os.tmpdir(), 'focus-browser-tmp');
   if (!fs.existsSync(tmpDir)) {
     fs.mkdirSync(tmpDir, { recursive: true });
   }
 
-  // Define target platforms to build
   const targets = [
     { platform: 'win32', arch: 'x64', appFolderName: 'FocusBrowser-win32-x64', icon: 'icon.ico' },
-    { platform: 'darwin', arch: 'x64', appFolderName: 'FocusBrowser-darwin-x64', icon: 'icon.icns' } // macOS Target
+    { platform: 'darwin', arch: 'x64', appFolderName: 'FocusBrowser-darwin-x64', icon: 'icon.icns' }
   ];
 
-  console.log(`\x1b[32m[Phase 2/3]\x1b[0m Packaging application for multiple platforms (Windows & macOS)...`);
+  console.log(`\x1b[32m[Phase 2/3]\x1b[0m Packaging application for multiple platforms...`);
 
   try {
     for (const target of targets) {
       console.log(`\n\x1b[36m[Packager]\x1b[0m Building for platform: \x1b[33m${target.platform} (${target.arch})\x1b[0m`);
       
-      // Check if platform-specific icon exists, otherwise omit flag safely
       let iconFlag = '';
       if (fs.existsSync(target.icon)) {
         iconFlag = `--icon=${target.icon}`;
