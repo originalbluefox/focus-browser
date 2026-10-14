@@ -55,7 +55,14 @@ function compressToZip(input, output) {
 
 async function main() {
   const startTime = Date.now();
-  console.log(`\x1b[35m[Timer]\x1b[0m Build script started at ${new Date().toLocaleTimeString()}`);
+  
+  // Accept target platform from CLI arguments (defaults to win32 if not specified)
+  const targetPlatform = process.argv[2] || 'win32';
+  const targetArch = 'x64';
+  const appFolderName = targetPlatform === 'win32' ? 'FocusBrowser-win32-x64' : 'FocusBrowser-darwin-x64';
+  const iconFile = targetPlatform === 'win32' ? 'icon.ico' : 'icon.icns';
+
+  console.log(`\x1b[35m[Timer]\x1b[0m Build script started for \x1b[33m${targetPlatform}\x1b[0m at ${new Date().toLocaleTimeString()}`);
 
   pkg.buildCounter = (pkg.buildCounter || 0) + 1;
 
@@ -69,14 +76,8 @@ async function main() {
   }
 
   function getOsPair() {
-    const platform = os.platform();
-    const release = os.release();
-    if (platform === 'win32') {
-      const buildNum = parseInt(release.split('.')[2] || '0', 10);
-      return buildNum >= 22000 ? 'W1' : 'W0';
-    }
-    if (platform === 'linux') return 'LX';
-    if (platform === 'darwin') return 'MC';
+    if (targetPlatform === 'win32') return 'W1';
+    if (targetPlatform === 'darwin') return 'MC';
     return 'OS';
   }
 
@@ -85,7 +86,7 @@ async function main() {
   const osCode = getOsPair();
   let buildNumber = `${hardwareCode}${seqPair}-OpSys_${osCode}`;
 
-  const customTag = process.argv[2];
+  const customTag = process.argv[3];
   if (customTag) {
     const sanitizedTag = customTag.replace(/[^a-zA-Z0-9-_]/g, '').toUpperCase();
     buildNumber = `${buildNumber}-${sanitizedTag}`;
@@ -97,45 +98,34 @@ async function main() {
   console.log(`\x1b[32m[Phase 1/3]\x1b[0m Generated build code: \x1b[33m#${buildNumber}\x1b[0m (Counter: ${pkg.buildCounter})`);
 
   const outDir = path.join('dist', buildNumber);
-  
-  // Use absolute system temp directory to prevent packager path conflicts
   const tmpDir = path.join(os.tmpdir(), 'focus-browser-tmp');
   if (!fs.existsSync(tmpDir)) {
     fs.mkdirSync(tmpDir, { recursive: true });
   }
 
-  const targets = [
-    { platform: 'win32', arch: 'x64', appFolderName: 'FocusBrowser-win32-x64', icon: 'icon.ico' },
-    { platform: 'darwin', arch: 'x64', appFolderName: 'FocusBrowser-darwin-x64', icon: 'icon.icns' }
-  ];
-
-  console.log(`\x1b[32m[Phase 2/3]\x1b[0m Packaging application for multiple platforms...`);
+  console.log(`\x1b[32m[Phase 2/3]\x1b[0m Packaging application for \x1b[33m${targetPlatform} (${targetArch})\x1b[0m...`);
 
   try {
-    for (const target of targets) {
-      console.log(`\n\x1b[36m[Packager]\x1b[0m Building for platform: \x1b[33m${target.platform} (${target.arch})\x1b[0m`);
-      
-      let iconFlag = '';
-      if (fs.existsSync(target.icon)) {
-        iconFlag = `--icon=${target.icon}`;
-      } else {
-        console.log(`\x1b[33m[Warning]\x1b[0m Icon file '${target.icon}' not found. Building without custom icon for ${target.platform}.`);
-      }
-
-      const packagerCmd = `npx electron-packager . FocusBrowser --platform=${target.platform} --arch=${target.arch} ${iconFlag} --out="${outDir}" --tmpdir="${tmpDir}" --ignore="dist" --overwrite`;
-
-      execSync(packagerCmd, { stdio: 'inherit' });
-      
-      const targetBuildFolder = path.join(outDir, target.appFolderName);
-      console.log(`\x1b[32m[Success]\x1b[0m Packaged ${target.platform} at: ${targetBuildFolder}`);
-      
-      console.log(`\x1b[32m[Phase 3/3]\x1b[0m Compressing ${target.platform} build to ZIP...`);
-      const zipOutputName = path.join(outDir, `${pkg.name}-${buildNumber}-${target.platform}-${target.arch}.zip`);
-      await compressToZip(targetBuildFolder, zipOutputName);
+    let iconFlag = '';
+    if (fs.existsSync(iconFile)) {
+      iconFlag = `--icon=${iconFile}`;
+    } else {
+      console.log(`\x1b[33m[Warning]\x1b[0m Icon file '${iconFile}' not found. Building without custom icon.`);
     }
 
+    const packagerCmd = `npx electron-packager . FocusBrowser --platform=${targetPlatform} --arch=${targetArch} ${iconFlag} --out="${outDir}" --tmpdir="${tmpDir}" --ignore="dist" --overwrite`;
+
+    execSync(packagerCmd, { stdio: 'inherit' });
+    
+    const targetBuildFolder = path.join(outDir, appFolderName);
+    console.log(`\x1b[32m[Success]\x1b[0m Packaged at: ${targetBuildFolder}`);
+    
+    console.log(`\x1b[32m[Phase 3/3]\x1b[0m Compressing build folder to ZIP...`);
+    const zipOutputName = path.join(outDir, `${pkg.name}-${buildNumber}-${targetPlatform}-${targetArch}.zip`);
+    await compressToZip(targetBuildFolder, zipOutputName);
+
     const totalSeconds = ((Date.now() - startTime) / 1000).toFixed(2);
-    console.log(`\n\x1b[35m[Timer]\x1b[0m All builds complete! Total time elapsed: \x1b[33m${totalSeconds}s\x1b[0m`);
+    console.log(`\n\x1b[35m[Timer]\x1b[0m Build complete! Total time elapsed: \x1b[33m${totalSeconds}s\x1b[0m`);
   } catch (error) {
     console.error('\x1b[31m[Error]\x1b[0m Process failed:', error.message);
     process.exit(1);
