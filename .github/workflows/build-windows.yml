@@ -6,7 +6,10 @@ on:
     - "dist/**"
     - "icon*"
     - "*.json"
-    
+    - ".github/**"
+  schedule:
+      - cron: "0 8 * * 1,4"
+
 jobs:
   build-windows:
     runs-on: windows-latest
