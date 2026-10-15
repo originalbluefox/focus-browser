@@ -57,6 +57,9 @@ async function main() {
   const startTime = Date.now();
   
   // Accept target platform from CLI arguments (defaults to win32 if not specified)
+  const argPlatform = process.argv[2]
+  const validPlatforms = ['darwin', 'win32']
+  if(!validPlatforms.includes(argPlatform)) throw new Error(`Invalid/Unrecognized Platform, received: ${argPlatform}, acceptable values: ${validPlatforms.join(", ")}`)
   const targetPlatform = process.argv[2] || 'win32';
   const targetArch = 'x64';
   const appFolderName = targetPlatform === 'win32' ? 'FocusBrowser-win32-x64' : 'FocusBrowser-darwin-x64';
