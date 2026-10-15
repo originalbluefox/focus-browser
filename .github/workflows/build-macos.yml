@@ -1,7 +1,10 @@
 name: Build macOS App
 
 on:
-  workflow_dispatch: 
+  paths-ignore:
+    - "dist/**"
+    - "icon*"
+    - "*.json"
 
 jobs:
   build-mac:
