@@ -9,15 +9,14 @@
     "package-old": "electron-packager . FocusBrowser --platform=win32 --arch=x64 --icon=icon.ico --out=dist --overwrite",
     "dev": "node -e \"process.env.DEV_TOOLS='true'; require('child_process').spawn('npx', ['electron', '.'], {shell: true, stdio: 'inherit'});\""
   },
-  "devDependencies": {
-    "@electron/packager": "^18.3.3",
-    "electron": "^31.0.0"
-  },
-  "buildCounter": 18,
-  "buildString": "AM0000I-OpSys_W1",
   "dependencies": {
+    "@electron/packager": "^18.3.3",
     "archiver": "^6.0.2",
     "dotenv": "^18.0.8",
+    "electron": "^31.0.0",
     "electron-builder": "^26.15.3"
-  }
+  },
+  "devDependencies": {},
+  "buildCounter": 18,
+  "buildString": "AM0000I-OpSys_W1"
 }
