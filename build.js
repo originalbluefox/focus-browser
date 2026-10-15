@@ -63,7 +63,7 @@ async function main() {
   const targetPlatform = process.argv[2] || 'win32';
   const targetArch = 'x64';
   const appFolderName = targetPlatform === 'win32' ? 'FocusBrowser-win32-x64' : 'FocusBrowser-darwin-x64';
-  const iconFile = targetPlatform === 'win32' ? 'icon.ico' : 'icon.icns';
+  const iconFile = targetPlatform === 'win32' ? 'icon.ico' : 'icon';
 
   console.log(`\x1b[35m[Timer]\x1b[0m Build script started for \x1b[33m${targetPlatform}\x1b[0m at ${new Date().toLocaleTimeString()}`);
 
