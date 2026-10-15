@@ -1,7 +1,8 @@
 name: Build macOS App
 
 on:
-  paths-ignore:
+  push:
+    paths-ignore:
     - "dist/**"
     - "icon*"
     - "*.json"
