@@ -92,11 +92,8 @@ async function main() {
 
   try {
     let iconFlag = '';
-    if (fs.existsSync(iconFile)) {
       iconFlag = `--icon=${iconFile}`;
-    } else {
-      console.log(`\x1b[33m[Warning]\x1b[0m Icon file '${iconFile}' not found. Building without custom icon.`);
-    }
+   
 
     const packagerCmd = `npx electron-packager . FocusBrowser --platform=${targetPlatform} --arch=${targetArch} ${iconFlag} --out="${outDir}" --tmpdir="${tmpDir}" --ignore="dist" --overwrite --no-prune`;
 
