@@ -64,27 +64,9 @@ async function main() {
 
   console.log(`\x1b[35m[Timer]\x1b[0m Build script started for \x1b[33m${targetPlatform}\x1b[0m at ${new Date().toLocaleTimeString()}`);
 
+  // Increment simple counter
   pkg.buildCounter = (pkg.buildCounter || 0) + 1;
-
-  function getHardwarePair() {
-    const cpus = os.cpus();
-    const cpuModel = cpus.length > 0 ? cpus[0].model.toUpperCase() : '';
-    if (cpuModel.includes('AMD')) return 'AM';
-    if (cpuModel.includes('INTEL')) return 'IN';
-    if (process.arch === 'arm64' || process.arch === 'arm') return 'AR';
-    return 'X8';
-  }
-
-  function getOsPair() {
-    if (targetPlatform === 'win32') return 'W1';
-    if (targetPlatform === 'darwin') return 'MC';
-    return 'OS';
-  }
-
-  const seqPair = pkg.buildCounter.toString(36).toUpperCase().padStart(5, '0');
-  const hardwareCode = getHardwarePair();
-  const osCode = getOsPair();
-  let buildNumber = `${hardwareCode}${seqPair}-OpSys_${osCode}`;
+  let buildNumber = String(pkg.buildCounter);
 
   const customTag = process.argv[3];
   if (customTag) {
@@ -95,7 +77,7 @@ async function main() {
   pkg.buildString = buildNumber;
   fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
   
-  console.log(`\x1b[32m[Phase 1/3]\x1b[0m Generated build code: \x1b[33m#${buildNumber}\x1b[0m (Counter: ${pkg.buildCounter})`);
+  console.log(`\x1b[32m[Phase 1/3]\x1b[0m Generated build number: \x1b[33m#${buildNumber}\x1b[0m`);
 
   const outDir = path.join('dist', buildNumber);
   const tmpDir = path.join(os.tmpdir(), 'focus-browser-tmp');
