@@ -28,7 +28,7 @@ jobs:
         run: npm install
 
       - name: Run macOS Build
-        run: node build.js darwin
+        run: node build.js darwin github-actions-macos
 
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v4

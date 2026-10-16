@@ -28,7 +28,7 @@ jobs:
         run: npm install
 
       - name: Run Windows Build
-        run: node build.js win32
+        run: node build.js win32 github-actions-windows
 
       - name: Upload Windows Artifact
         uses: actions/upload-artifact@v4
