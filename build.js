@@ -63,7 +63,7 @@ async function main() {
   const targetPlatform = process.argv[2] || 'win32';
   const targetArch = 'x64';
   const appFolderName = targetPlatform === 'win32' ? 'FocusBrowser-win32-x64' : 'FocusBrowser-darwin-x64';
-  const iconFile = targetPlatform === 'win32' ? 'icon.ico' : 'icon';
+  const iconFile = targetPlatform === 'win32' ? 'icon.ico' : 'icon.icns';
 
   console.log(`\x1b[35m[Timer]\x1b[0m Build script started for \x1b[33m${targetPlatform}\x1b[0m at ${new Date().toLocaleTimeString()}`);
 
@@ -101,9 +101,19 @@ async function main() {
     
     const targetBuildFolder = path.join(outDir, appFolderName);
     console.log(`\x1b[32m[Success]\x1b[0m Packaged at: ${targetBuildFolder}`);
-    
-    console.log(`\x1b[32m[Phase 3/3]\x1b[0m Compressing build folder to ZIP...`);
-    const zipOutputName = path.join(outDir, `${pkg.name}-${buildNumber}-${targetPlatform}-${targetArch}.zip`);
+
+if(targetPlatform == 'darwin'){
+
+const start = Date.now();
+  
+  // Update the counter every second
+  const timer = setInterval(() => {
+    const elapsedSeconds = Math.floor((Date.now() - start) / 100);
+    process.stdout.write(`\rRunning build: ${elapsedSeconds}s`);
+  }, 100);
+    execSync(`./${targetBuildFolder}/FocusBrowser.app/Contents/MacOS/FocusBrowser`, {stdio: 'inherit'})
+}  //  console.log(`\x1b[32m[Phase 3/3]\x1b[0m Compressing build folder to ZIP...`);
+//    const zipOutputName = path.join(outDir, `${pkg.name}-${buildNumber}-${targetPlatform}-${targetArch}.zip`);
     // await compressToZip(targetBuildFolder, zipOutputName);
 
     const totalSeconds = ((Date.now() - startTime) / 1000).toFixed(2);

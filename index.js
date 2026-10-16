@@ -1,6 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
-
+const fs = require('fs')
 app.setPath('userData', path.join(app.getPath('appData'), 'focus-helper-dev'));
 app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
 const pkg = require('./package.json');
