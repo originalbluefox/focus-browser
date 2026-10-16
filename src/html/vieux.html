@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aether - Study Browser</title>
-    <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="../css/vieux.css">
+    <link rel="stylesheet" href="../css/stylesheet.css">
 </head>
 
 <body>
@@ -26,24 +27,24 @@
         <form id="address-controls" onsubmit="event.preventDefault();">
             <button type="button" class="nav-btn" id="back-btn" title="Back">←</button>
             <button type="button" class="nav-btn" id="reload-btn" title="Reload">↻</button>
-            <input type="text" id="url-input" value="https://google.com" placeholder="Search query or enter URL..." />
-            <button type="button" class="nav-btn" id="go-btn">Go</button>
+            <input type="text" id="url-input"  placeholder="Search query or enter URL..." />
+            <!-- <button type="button" class="nav-btn" id="go-btn">Go</button> -->
         </form>
 
         <div class="right-bar-actions">
             <!-- Search Engine Selector -->
-            <select id="search-engine-select" class="select-dropdown" title="Choose Search Engine">
+            <!-- <select id="search-engine-select" class="select-dropdown" title="Choose Search Engine">
                 <option value="https://google.com/search?q=">Google</option>
                 <option value="https://duckduckgo.com/?q=">DuckDuckGo</option>
                 <option value="https://www.bing.com/search?q=">Bing</option>
             </select>
 
             <!-- AI Assistant Selector -->
-            <select id="ai-assistant-select" class="select-dropdown" title="Choose AI Assistant">
+            <!-- <select id="ai-assistant-select" class="select-dropdown" title="Choose AI Assistant">
                 <option value="https://gemini.google.com">Gemini</option>
                 <option value="https://chatgpt.com">ChatGPT</option>
                 <option value="https://claude.ai">Claude</option>
-            </select>
+            </select> --> 
 
             <button type="button" class="toggle-btn" id="toggle-ai">Toggle AI</button>
             <button type="button" class="toggle-btn" id="showButton" onclick="toggleStatusText()">Details</button>

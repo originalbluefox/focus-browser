@@ -2,51 +2,64 @@
 const state = require('./state.js');
 
 async function navigate() {
+    if (!state.urlInput) return;
+
     const rawInput = state.urlInput.value.trim();
     if (!rawInput) return;
 
-    const tld = /^[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/;
+    const tld = /^[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/i;
     const isDomain = tld.test(rawInput);
     const isLink = /\w+:\/\//.test(rawInput);
 
-    let validatedInput = await state.checkSearch(rawInput);
-    if (!validatedInput) {
-        state.messageText.innerText = `x_x navigation blocked: "${rawInput}"`;
-        return;
+    let validatedInput = rawInput;
+    if (typeof state.checkSearch === 'function') {
+        validatedInput = await state.checkSearch(rawInput);
+        if (!validatedInput) {
+            if (state.messageText) state.messageText.innerText = `x_x navigation blocked: "${rawInput}"`;
+            return;
+        }
     }
 
     if (rawInput.startsWith("data:")) {
-        validatedInput = rawInput
-        state.urlInput.innerText = ""
-    }else
-    if (!isLink && isDomain) {
+        validatedInput = rawInput;
+        state.urlInput.value = "";
+    } else if (!isLink && isDomain) {
         validatedInput = 'https://' + validatedInput;
     } else if (!isLink && !isDomain) {
-        validatedInput = state.preferences.searchEngineScheme + encodeURIComponent(validatedInput);
+        const searchScheme = (state.preferences && state.preferences.searchEngineScheme) 
+        console.log("[NAV] SEARCH SCHEMA", searchScheme)
+        validatedInput = searchScheme + encodeURIComponent(validatedInput);
     }
 
     const currentView = state.getActiveWebview();
     if (currentView) {
-        displayCurrentView(validatedInput)
-        currentView.setAttribute('src', validatedInput);
+        // Direct webview src navigation
+        currentView.src = validatedInput;
     }
 }
 
-
-
 function initNavigationListeners() {
-    state.goBtn.addEventListener('click', navigate);
-    state.urlInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') navigate(); });
+    if (state.goBtn) state.goBtn.addEventListener('click', navigate);
+    if (state.urlInput) {
+        state.urlInput.addEventListener('focus', (e) => e.target.select());
+        state.urlInput.addEventListener('keypress', (e) => { 
+            if (e.key === 'Enter') navigate(); 
+        });
+    }
     
-    state.backBtn.addEventListener('click', () => { 
-        const view = state.getActiveWebview();
-        if (view && view.canGoBack()) view.goBack(); 
-    });
+    if (state.backBtn) {
+        state.backBtn.addEventListener('click', () => { 
+            const view = state.getActiveWebview();
+            if (view && view.canGoBack()) view.goBack(); 
+        });
+    }
 
-    state.reloadBtn.addEventListener('click', () => {
-        const view = state.getActiveWebview();
-        if (view) view.reload();
-    });
+    if (state.reloadBtn) {
+        state.reloadBtn.addEventListener('click', () => {
+            const view = state.getActiveWebview();
+            if (view) view.reload();
+        });
+    }
 
     if (state.toggleAiBtn && state.aiContainer) {
         state.toggleAiBtn.addEventListener('click', () => {
@@ -56,6 +69,7 @@ function initNavigationListeners() {
 
     if (state.searchEngineSelect) {
         state.searchEngineSelect.addEventListener('change', (e) => {
+            if (!state.preferences) state.preferences = {};
             state.preferences.searchEngineScheme = e.target.value;
         });
     }
@@ -66,17 +80,20 @@ function initNavigationListeners() {
         });
     }
 
-    state.ipcRenderer.on('set-user-preferences', (event, prefs) => {
-        console.log('[App] Received preferences from setup:', prefs);
-        if (prefs.searchEngine) {
-            state.preferences.searchEngineScheme = prefs.searchEngine;
-            if (state.searchEngineSelect) state.searchEngineSelect.value = prefs.searchEngine;
-        }
-        if (prefs.aiAssistant && state.aiView) {
-            state.aiView.setAttribute('src', prefs.aiAssistant);
-            if (state.aiAssistantSelect) state.aiAssistantSelect.value = prefs.aiAssistant;
-        }
-    });
+    if (state.ipcRenderer) {
+        state.ipcRenderer.on('set-user-preferences', (event, prefs) => {
+            console.log('[App] Received preferences from setup:', prefs);
+            if (prefs.searchEngine) {
+                if (!state.preferences) state.preferences = {};
+                state.preferences.searchEngineScheme = prefs.searchEngine;
+                if (state.searchEngineSelect) state.searchEngineSelect.value = prefs.searchEngine;
+            }
+            if (prefs.aiAssistant && state.aiView) {
+                state.aiView.setAttribute('src', prefs.aiAssistant);
+                if (state.aiAssistantSelect) state.aiAssistantSelect.value = prefs.aiAssistant;
+            }
+        });
+    }
 }
 
 function toggleStatusText() {
@@ -85,6 +102,20 @@ function toggleStatusText() {
     });
 }
 window.toggleStatusText = toggleStatusText;
+
+window.addEventListener('message', async (event) => {
+    if (event.data && event.data.type === 'SET_SEARCH_ENGINE') {
+        console.log("SEARCH ENGINE EVENT")
+        const { engineUrl } = event.data;
+        
+        try {
+            // Forward selection to main process to write to defaultPrefs.json
+            await ipcRenderer.invoke('set-search-engine', engineUrl);
+        } catch (err) {
+            console.warn('[Navigation] IPC set-search-engine failed:', err);
+        }
+    }
+});
 
 module.exports = {
     navigate,

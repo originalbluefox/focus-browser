@@ -1,8 +1,9 @@
 // Main App Entry Point
 const state = require('../js/state.js');
-const { createTab } = require('../js/tab.js');
+const { createTab, createTabFromFile } = require('../js/tabs.js');
 const { initNavigationListeners } = require('../js/navigation.js');
-
+const { overrides } = require('../js/overrides.js')
+overrides({createTab})
 function compareSemVer(v1, v2) {
     const p1 = v1.split('.').map(Number);
     const p2 = v2.split('.').map(Number);
@@ -30,7 +31,10 @@ setTimeout(() => {
     });
 }, 500);
 
-// Initialize Developer Tools Hook
+
+// Version Check & Initial Startup Tab
+document.addEventListener('DOMContentLoaded', async () => {
+    // Initialize Developer Tools Hook
 if (state.DeveloperTools) {
     try {
         state.DeveloperTools.init({
@@ -44,12 +48,10 @@ if (state.DeveloperTools) {
     }
 }
 
-// Version Check & Initial Startup Tab
-document.addEventListener('DOMContentLoaded', async () => {
     if (navigator.platform.toLowerCase().includes('mac') || navigator.userAgent.includes('Mac')) {
         document.body.classList.add('macos');
     }
-    createTab('https://google.com', 'Google');
+    createTabFromFile("../html/landing.html")
 
     try {
         const appMeta = await state.ipcRenderer.invoke('get-app-version');
@@ -80,11 +82,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (err) {
         state.messageText.innerText = 'Offline / Status check failed';
     }
-});
-
-const newSessionBtn = document.getElementById('new-session-btn');
+    const newSessionBtn = document.getElementById('new-session-btn');
 if (newSessionBtn) {
     newSessionBtn.addEventListener('click', () => {
         state.ipcRenderer.send('return-to-setup');
     });
 }
+});
+

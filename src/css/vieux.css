@@ -31,7 +31,7 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 0 8px;
-    -webkit-app-region: drag;
+    -webkit-app-region: no-drag;
     border-bottom: 1px solid #222;
 }
 
@@ -61,6 +61,7 @@ body {
     flex-shrink: 0; /* Prevents tab strip from forcing the plus button away */
     overflow-x: auto;
     padding: 0 4px;
+    width: 100%;
 }
 
 .new-tab-btn {
@@ -148,7 +149,7 @@ body {
     align-items: center;
     gap: 6px;
     flex: 1;
-    max-width: 700px;
+    width: 95%;
 }
 
 .nav-btn, .toggle-btn, .select-dropdown {
@@ -184,6 +185,7 @@ body {
     font-size: 13px;
     outline: none;
     transition: border-color 0.15s;
+    width: 100%;
 }
 
 #url-input:focus {
@@ -269,4 +271,13 @@ body.macos #title-bar {
 
 body.macos #title-bar * {
     -webkit-app-region: no-drag;
+}
+.drag {
+    -webkit-app-region: drag;
+    width:100%;
+    height:30px;
+}
+#url-input::selection {
+    background-color: var(--accent-color, #00ddff);
+    color: #000000;
 }

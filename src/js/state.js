@@ -1,5 +1,5 @@
 // Global State & DOM Handles Module
-
+const {ipcRenderer} = require('electron')
 // DevTools & Electron Imports
 let DeveloperTools = null;
 try {
@@ -8,7 +8,12 @@ try {
     console.warn('[DevTools] Optional module not loaded.');
 }
 
-const { ipcRenderer } = require('electron');
+const electronAPI = window.electronAPI || {
+    invoke: () => Promise.resolve(),
+    send: () => {},
+    on: () => {}
+};
+
 const { checkSearch, getConfig } = require('../js/filter.js');
 const { initContextBridge } = require('../js/context.js');
 
@@ -39,15 +44,24 @@ let activeTabId = null;
 let preferences = { 
     searchEngineScheme: 'https://google.com/search?q=' 
 };
+// Listen for updates from main process and keep local state updated
+ipcRenderer.on('search-engine-updated', (event, engineUrl) => {
+    preferences.searchEngineScheme = engineUrl;
+    console.log('[State] Updated state.preferences.searchEngineScheme:', engineUrl);
+});
 
+// Fetch active configuration on boot
+ipcRenderer.invoke('get-search-engine').then((engineUrl) => {
+    if (engineUrl) preferences.searchEngineScheme = engineUrl;
+});
 function getActiveWebview() {
     const active = tabs.find(t => t.id === activeTabId);
     return active ? active.webview : null;
 }
 
 module.exports = {
-    DeveloperTools,
-    ipcRenderer,
+    DeveloperTools: new DeveloperTools(),
+    ipcRenderer: electronAPI,
     checkSearch,
     getConfig,
     initContextBridge,

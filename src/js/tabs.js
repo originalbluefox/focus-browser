@@ -1,24 +1,50 @@
 // Tab Management Module
+const { ipcRenderer } = require('electron');
 const state = require('./state.js');
 
 // Create New Tab Button dynamically so it stays right after the tabs
-const newTabBtn = document.createElement('button');
-newTabBtn.type = 'button';
-newTabBtn.className = 'new-tab-btn';
-newTabBtn.id = 'new-tab-btn';
-newTabBtn.title = 'Open New Tab';
-newTabBtn.innerText = '+';
-newTabBtn.addEventListener('click', () => createTabFromFile('../html/landing.html', 'New Tab'));
+
 
 function createTab(initialUrl = 'https://google.com', initialTitle = 'New Tab') {
+
+    // Is it a valid data tab?
+    if (initialUrl.startsWith("data")) {
+       }
+
     const tabId = 'tab-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
 
     const webview = document.createElement('webview');
     webview.id = `view-${tabId}`;
     webview.src = initialUrl;
     webview.style.display = 'none'; 
+    webview.setAttribute("parition", "persist:aether")
     state.workContainer.appendChild(webview);
+    webview.addEventListener('dom-ready', () => {
+        webview.executeJavaScript(`
+            (function() {
+                const select = document.getElementById('search-engine-select');
+                if (select && !select.dataset.aetherBound) {
+                    select.dataset.aetherBound = 'true';
+                    select.addEventListener('change', (e) => {
+                        console.log('[Aether IPC Bridge]', e.target.value);
+                    });
+                }
+            })();
+        `);
+    });
 
+    // Listen for console logs coming from the webview to relay them to index.js
+    webview.addEventListener('console-message', async (e) => {
+        if (e.message.startsWith('[Aether IPC Bridge]')) {
+            const engineUrl = e.message.replace('[Aether IPC Bridge] ', '').trim();
+            try {
+                await ipcRenderer.invoke('set-search-engine', engineUrl);
+                console.log('[Tabs] Synced search engine choice:', engineUrl);
+            } catch (err) {
+                console.warn('[Tabs] Failed to send search engine to main process:', err);
+            }
+        }
+    });
     webview.addEventListener('did-navigate', (e) => {
         if (tabId === state.activeTabId) {
             state.urlInput.value = e.url;
@@ -62,27 +88,8 @@ function switchTab(tabId) {
 
     renderTabStrip();
 }
-function switchTab2(tabId) {
-    activeTabId = tabId;
 
-    tabs.forEach(tab => {
-        if (tab.id === tabId) {
-            tab.webview.style.display = 'flex';
-            if (state.urlInput) {
-                // If it's a data URI landing page, leave the input empty/clean
-                if (!tab.url.startsWith('data:')) {
-                    state.urlInput.value = tab.url;
-                } else {
-                    state.urlInput.value = '';
-                }
-            }
-        } else {
-            tab.webview.style.display = 'none';
-        }
-    });
 
-    renderTabStrip();
-}
 function closeTab(tabId) {
     if (state.tabs.length === 1) return; // Keep at least one tab open
 
@@ -116,6 +123,7 @@ function updateTabTitle(tabId, title) {
 }
 
 function renderTabStrip() {
+    // Wipe the tab strip
     state.tabStrip.innerHTML = '';
     
     // Render all tabs
@@ -135,12 +143,30 @@ function renderTabStrip() {
             }
         });
 
+         if (state.urlInput) {
+                // If it's a data URI landing page, leave the input empty/clean
+                if (!tab.url.startsWith('data:')) {
+                    state.urlInput.value = tab.url;
+                } else {
+                    state.urlInput.value = '';
+                }
+            }
         state.tabStrip.appendChild(tabEl);
     });
 
     // Always append the `+` button directly after the newest/last tab
-    state.tabStrip.appendChild(newTabBtn);
+
+
+    state.tabStrip.insertAdjacentHTML('beforeend',`<button class="new-tab-btn" id="new-tab-btn" title="Open New Tab">+</button>`)
+    const newTabBtn = document.getElementById("new-tab-btn")
+    newTabBtn.addEventListener('click', () => createTabFromFile('../html/landing.html', 'New Tab'));
+
+    // Add a dragable section
+    state.tabStrip.insertAdjacentHTML("beforeend", `<div class="drag"></div>`)
 }
+
+
+
 function createHtmlTab(htmlString, title = 'Landing Page') {
     const encodedHtml = 'data:text/html;charset=utf-8,' + encodeURIComponent(htmlString);
     createTab(encodedHtml, title);
@@ -159,12 +185,50 @@ function createTabFromFile(filePath, title = 'Landing Page') {
             createHtmlTab(htmlContent, title);
         } else {
             console.warn('[Tabs] Landing file not found at:', resolvedPath);
-            createTab('https://google.com', title);
+            createTabFromFile("../html/error.html")
         }
     } catch (err) {
         console.error('[Tabs] Failed to read landing file:', err);
         createTab('https://google.com', title);
     }
+}
+
+
+
+
+// Listen for the request from the main process and invoke your existing tab creator
+ipcRenderer.on('open-new-tab-request', (event, url) => {
+  if (typeof createTab === 'function') {
+    createTab(url, 'New Tab');
+  }
+});
+
+ipcRenderer.on('open-guest-tab', (event, url) => {
+  if (typeof createTab === 'function') {
+    createTab(url, 'New Tab');
+  }
+});
+
+function setupWebviewSecurity(webview) {
+  // Prevent beforeunload dialogs from blocking window/tab closure
+  webview.addEventListener('dom-ready', () => {
+    const webContents = webview.getWebContents();
+    if (webContents) {
+      // Disable default dialog prompts triggered by onbeforeunload
+      webContents.session.setPermissionRequestHandler((wc, permission, callback) => {
+        if (permission === 'pointerLock' || permission === 'fullscreen') {
+          callback(true);
+        } else {
+          callback(false);
+        }
+      });
+    }
+  });
+
+  // Automatically dismiss or log guest page dialogs (alert, confirm, prompt)
+  webview.addEventListener('ipc-message', (event) => {
+    // Handle custom IPC triggers if using a preload script
+  });
 }
 module.exports = {
     createTab,

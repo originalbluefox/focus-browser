@@ -12,10 +12,12 @@ function trackReady(view) {
     return () => ready;
 }
 
+// Replace old writeClipboard with bridged call
 function writeClipboard(text) {
-    try {
-        clipboard.writeText(text);
-    } catch (e) {
+    if (window.electronAPI && window.electronAPI.writeClipboardText) {
+        const ok = window.electronAPI.writeClipboardText(text);
+        if (!ok) navigator.clipboard.writeText(text).catch(() => {});
+    } else {
         navigator.clipboard.writeText(text).catch(() => {});
     }
 }
