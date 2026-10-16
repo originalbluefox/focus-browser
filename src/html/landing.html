@@ -332,27 +332,19 @@
         const themeSelect = document.getElementById('theme-select');
 
         // Safe localStorage helpers
-        function safeGetStorage(key, fallback) {
-            console.log("SAFE GET STORAGE", key, fallback)
-            try {
-                const returnedVal = localStorage.getItem(key) 
-                console.log(returnedVal)
-                return returnedVal || fallback;
-            } catch (e) {
-                console.warn(`[Storage] Storage access denied for ${key}. Using fallback.`);
-                return fallback;
-            }
+        let storage = {
+            theme: "dark",
+            search_engine: "https://duckduckgo.com/?q="
         }
 
-        function safeSetStorage(key, value) {
-            console.log('SAFE SET STORAGE', key, value)
-            try {
-                localStorage.setItem(key, value);
-            } catch (e) {
-                console.warn(`[Storage] Failed to save ${key} to localStorage.`);
-            }
+        function safeGetStorage(key, fallback){
+            return storage[key] || fallback;
         }
 
+        function safeSetStorage(key, value){
+            storage[key] = value;
+            return true;
+        }
         function togglePanel(open) {
             panel.classList.toggle('open', open);
             overlay.classList.toggle('active', open);
@@ -363,8 +355,8 @@
         overlay.addEventListener('click', () => togglePanel(false));
 
         function loadSettings() {
-            const savedTheme = safeGetStorage('aether_theme', 'dark');
-            const savedEngine = safeGetStorage('aether_search_engine', 'https://google.com/search?q=');
+            const savedTheme = safeGetStorage('theme', 'dark');
+            const savedEngine = safeGetStorage('search_engine', 'https://google.com/search?q=');
 
             document.body.setAttribute('data-theme', savedTheme);
             themeSelect.value = savedTheme;
@@ -381,12 +373,12 @@
         themeSelect.addEventListener('change', (e) => {
             const theme = e.target.value;
             document.body.setAttribute('data-theme', theme);
-            safeSetStorage('aether_theme', theme);
+            safeSetStorage('theme', theme);
         });
         engineSelect.addEventListener('change', (e) => {
             console.log("engine select updated")
             const engineUrl = e.target.value;
-            safeSetStorage('aether_search_engine', engineUrl);
+            safeSetStorage('search_engine', engineUrl);
            try {
                 window.parent.postMessage({ type: 'SET_SEARCH_ENGINE', engineUrl }, '*');
             } catch (err) {
@@ -400,7 +392,7 @@
             const query = searchInput.value.trim();
             if (!query) return;
 
-            const engineUrl = safeGetStorage('aether_search_engine', 'https://google.com/search?q=');
+            const engineUrl = safeGetStorage('search_engine', 'https://google.com/search?q=');
             
             let targetUrl;
             if (/^(https?:\/\/|[a-zA-Z0-9-]+\.[a-zA-Z]{2,})/.test(query)) {

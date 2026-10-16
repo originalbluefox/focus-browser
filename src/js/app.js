@@ -54,10 +54,15 @@ if (state.DeveloperTools) {
     createTabFromFile("../html/landing.html")
 
     try {
-        const appMeta = await state.ipcRenderer.invoke('get-app-version');
+        var {ipcRenderer} =require('electron')
+        const appMeta = await ipcRenderer.invoke('get-app-version');
+        
+        
         const currentVersion = appMeta.version;
+        
         state.versionText.innerText = `v${currentVersion} (Build ${appMeta.build})`;
     } catch (e) {
+        console.log(e)
         state.versionText.innerText = 'v1.0.0';
     }
 
