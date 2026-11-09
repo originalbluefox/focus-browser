@@ -111,7 +111,7 @@ const start = Date.now();
     const elapsedSeconds = Math.floor((Date.now() - start) / 100);
     process.stdout.write(`\rRunning build: ${elapsedSeconds}s`);
   }, 100);
-    execSync(`./${targetBuildFolder}/FocusBrowser.app/Contents/MacOS/FocusBrowser`, {stdio: 'inherit'})
+    // execSync(`./${targetBuildFolder}/FocusBrowser.app/Contents/MacOS/FocusBrowser`, {stdio: 'inherit'})
 }  //  console.log(`\x1b[32m[Phase 3/3]\x1b[0m Compressing build folder to ZIP...`);
 //    const zipOutputName = path.join(outDir, `${pkg.name}-${buildNumber}-${targetPlatform}-${targetArch}.zip`);
     // await compressToZip(targetBuildFolder, zipOutputName);
